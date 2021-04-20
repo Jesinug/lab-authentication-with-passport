@@ -7,6 +7,9 @@ const saltRounds = 10;
 const ensureLogin = require('connect-ensure-login');
 
 //
+router.get('/private-page', ensureLogin.ensureLoggedIn(), (req, res) => {
+  res.render('passport/private', { user: req.user });
+});
 
 
 const isLoggedOut = (req, res, next) => {
@@ -15,19 +18,19 @@ const isLoggedOut = (req, res, next) => {
   } else { next() };
 }
 
-router.get('/signup', isLoggedOut, (req, res) => {
-  res.render('signup')
+router.get('/signup', (req, res) => {
+  res.render('auth/signup')
 }) 
 
 router.post('signup', (req, res) => {
   const { username, password } = req.body;
   if(!username || !password) {
-    res.render('signup', {errorMessage: "Username and password are required"})
+    res.render('auth/signup', {errorMessage: "Username and password are required"})
   }
   User.findOne({ username })
   .then(user => {
     if(user) {
-      res.render('signup', {errorMessage: "Username already exists"})  
+      res.render('auth/signup', {errorMessage: "Username already exists"})  
     }
     const salt = bcrypt.genSaltSync(saltRounds);
     const hashPass = bcrypt.hashSync(password, salt);
@@ -42,15 +45,12 @@ router.post('signup', (req, res) => {
       })
     })
   })
-  .catch(error) => {
+  .catch((error) => {
     (console.log(error))
-    return res.render('signup', {errorMessage: "Server error. Try again"})
-    }
+    return res.render('auth/signup', {errorMessage: "Server error. Try again"})
+    })
 })
 
-  router.get('/private-page', ensureLogin.ensureLoggedIn(), (req, res) => {
-  res.render('passport/private', { user: req.user });
-});
 
 /* Middleware
 isLoggedOut
